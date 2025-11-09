@@ -20,15 +20,14 @@ async function init() {
   if (!scan) { console.error('scanBtn missing'); return; }
 
   gen.onclick = async () => {
-    console.log('[PE] Generate clicked');
-    toast('Creating QR…');
-    const seed = crypto.getRandomValues(new Uint8Array(32));
-    await setSeed(seed);
-    await generateQR(btoa(String.fromCharCode(...seed)));
-    toast('QR created – show it to the other device');
-    document.getElementById('pairing').hidden = true;
-    document.getElementById('chat').hidden   = false;
-  };
+  toast('Creating QR…');
+  const seed = crypto.getRandomValues(new Uint8Array(32));
+  await setSeed(seed);
+  document.getElementById('pairing').hidden = false; // make sure card visible
+  await generateQR(btoa(String.fromCharCode(...seed)));
+  toast('QR created – show it to the other device');
+};
+
 
   scan.onclick = async () => {
     console.log('[PE] Scan clicked');
@@ -70,3 +69,4 @@ async function init() {
 window.addEventListener('DOMContentLoaded', init);
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
       
+
