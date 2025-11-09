@@ -1,20 +1,25 @@
-/* qr.js  – glass-morphic PWA edition  */
+/*  qr.js  – complete, bullet-proof  */
 import { setSeed } from './crypto.js';
 
 const vid   = document.getElementById('cam');
 const qrcvs = document.getElementById('qrcvs');
 
-/* 1.  generate QR  – makes canvas visible first */
+/* ---------- 1.  GENERATE QR ---------- */
 export async function generateQR(data) {
-  qrcvs.style.display = 'block';                // force visible
-  await QRCode.toCanvas(qrcvs, data, { width: 256, margin: 2 });
+  // ensure canvas is in the layout
+  qrcvs.style.display = 'block';
+  // QRCode needs a moment to layout
+  await new Promise(r => requestAnimationFrame(r));
+  await QRCode.toCanvas(qrcvs, data, { width: 256, margin: 2, errorCorrectionLevel: 'M' });
 }
 
-/* 2.  camera scan – gesture-safe, full error handling */
+/* ---------- 2.  SCAN QR  ---------- */
 export async function startScan(onFound) {
-  vid.style.display = 'block';                  // show video element
+  // 1.  make video box visible **before** getUserMedia
+  vid.style.display = 'block';
   vid.hidden = false;
 
+  // 2.  request camera **synchronously** (keeps user-gesture)
   let stream;
   try {
     stream = await navigator.mediaDevices.getUserMedia({
@@ -22,17 +27,24 @@ export async function startScan(onFound) {
     });
   } catch (err) {
     vid.style.display = 'none';
-    throw new Error('Camera blocked – check permissions / HTTPS');
+    // readable error for UI
+    if (err.name === 'NotAllowedError')     throw new Error('Camera permission denied');
+    if (err.name === 'NotFoundError')       throw new Error('No camera found');
+    if (location.protocol !== 'https:')     throw new Error('HTTPS required for camera');
+    throw new Error('Camera open failed: ' + err.message);
   }
 
+  // 3.  start video feed
   vid.srcObject = stream;
   await vid.play();
 
+  // 4.  scanning loop
   const canvas = document.createElement('canvas');
   const ctx    = canvas.getContext('2d');
 
   function loop() {
-    if (vid.videoWidth === 0 || vid.videoHeight === 0) {
+    // video ready?
+    if (!vid.videoWidth || !vid.videoHeight) {
       return requestAnimationFrame(loop);
     }
 
@@ -44,6 +56,7 @@ export async function startScan(onFound) {
                       canvas.width, canvas.height);
 
     if (code) {
+      // stop everything
       stream.getTracks().forEach(t => t.stop());
       vid.style.display = 'none';
       onFound(code.data);
