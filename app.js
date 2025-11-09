@@ -35,3 +35,4 @@ document.getElementById('decBtn').onclick = async () => {
 
 // register service worker
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
