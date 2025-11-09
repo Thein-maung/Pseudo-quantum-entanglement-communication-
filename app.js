@@ -1,38 +1,72 @@
-import { setSeed, nextPad } from './crypto.js';
-import { generateQR, startScan } from './qr.js';
+console.log('[PE] app.js loaded');
 
-const chatDiv = document.getElementById('chat');
-const pairingDiv = document.getElementById('pairing');
+function toast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = `position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#00ff99;color:#000;padding:0.5rem 1rem;border-radius:8px;font-size:0.9rem;z-index:999`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2000);
+}
 
-document.getElementById('genBtn').onclick = async () => {
-  const seed = crypto.getRandomValues(new Uint8Array(32));
-  await setSeed(seed);
-  await generateQR(btoa(String.fromCharCode(...seed)));
-  pairingDiv.hidden = true; chatDiv.hidden = false;
-};
+async function init() {
+  console.log('[PE] DOM ready');
 
-document.getElementById('scanBtn').onclick = async () => {
-  await startScan(async raw => {
-    const seed = new Uint8Array([...atob(raw)].map(c => c.charCodeAt(0)));
+  const gen  = document.getElementById('genBtn');
+  const scan = document.getElementById('scanBtn');
+  const send = document.getElementById('sendBtn');
+  const dec  = document.getElementById('decBtn');
+
+  if (!gen)  { console.error('genBtn missing');  return; }
+  if (!scan) { console.error('scanBtn missing'); return; }
+
+  gen.onclick = async () => {
+    console.log('[PE] Generate clicked');
+    toast('Creating QR…');
+    const seed = crypto.getRandomValues(new Uint8Array(32));
     await setSeed(seed);
-    pairingDiv.hidden = true; chatDiv.hidden = false;
-  });
-};
+    await generateQR(btoa(String.fromCharCode(...seed)));
+    toast('QR created – show it to the other device');
+    document.getElementById('pairing').hidden = true;
+    document.getElementById('chat').hidden   = false;
+  };
 
-document.getElementById('sendBtn').onclick = async () => {
-  const txt = new TextEncoder().encode(document.getElementById('txt').value);
-  const pad = await nextPad(txt.length);
-  const cip = txt.map((b, i) => b ^ pad[i]);
-  document.getElementById('log').textContent = btoa(String.fromCharCode(...cip));
-};
+  scan.onclick = async () => {
+    console.log('[PE] Scan clicked');
+    toast('Opening camera…');
+    try {
+      await startScan(async raw => {
+        const seed = new Uint8Array([...atob(raw)].map(c => c.charCodeAt(0)));
+        await setSeed(seed);
+        toast('Paired! You can now go offline.');
+        document.getElementById('pairing').hidden = true;
+        document.getElementById('chat').hidden   = false;
+      });
+    } catch (e) {
+      console.error('[PE] scan error', e);
+      toast('Camera error: ' + e.message);
+    }
+  };
 
-document.getElementById('decBtn').onclick = async () => {
-  const cip = new Uint8Array([...atob(prompt('Paste base64'))].map(c => c.charCodeAt(0)));
-  const pad = await nextPad(cip.length);
-  const txt = cip.map((b, i) => b ^ pad[i]);
-  document.getElementById('log').textContent = new TextDecoder().decode(txt);
-};
+  send.onclick = async () => {
+    console.log('[PE] Send clicked');
+    const txt = new TextEncoder().encode(document.getElementById('txt').value);
+    const pad = await nextPad(txt.length);
+    const cip = txt.map((b,i) => b ^ pad[i]);
+    document.getElementById('log').textContent += '→ ' + btoa(String.fromCharCode(...cip)) + '\n';
+    document.getElementById('txt').value = '';
+  };
 
-// register service worker
+  dec.onclick = async () => {
+    console.log('[PE] Decode clicked');
+    const raw = prompt('Paste base64:');
+    if (!raw) return;
+    const cip = new Uint8Array([...atob(raw)].map(c => c.charCodeAt(0)));
+    const pad = await nextPad(cip.length);
+    const txt = cip.map((b,i) => b ^ pad[i]);
+    document.getElementById('log').textContent += '← ' + new TextDecoder().decode(txt) + '\n';
+  };
+}
+
+window.addEventListener('DOMContentLoaded', init);
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-
+      
