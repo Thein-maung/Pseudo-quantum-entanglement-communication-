@@ -2,71 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Entangle – Offline Chat</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <meta name="theme-color" content="#0a0a0a">
+  <title>Pseudo-Entangle Chat</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/192.png">
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div id="particles"></div>
+<header><h1>🌀 Pseudo-Entangle Chat</h1></header>
+<main>
+<section id="pairing">
+  <button id="genBtn">Generate QR</button>
+  <button id="scanBtn">Scan QR</button>
+  <canvas id="qrcvs"></canvas>
+  <video id="cam" playsinline></video>
+</section>
+<section id="chat" hidden>
+  <textarea id="txt" placeholder="Type message…"></textarea>
+  <div class="btns">
+    <button id="sendBtn">Encrypt & Show</button>
+    <button id="decBtn">Decode Message</button>
+  </div>
+  <pre id="log"></pre>
+</section>
+</main>
+<footer><small>Offline-ready • AI Twin Pad</small></footer>
 
-  <header>
-    <h1>Entangle</h1>
-    <p>Zero-network private chat</p>
-  </header>
+<script src="tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 
-  <main id="pairing" class="card">
-    <h2>Pair devices once</h2>
-    <p>Then go airplane-mode and chat.</p>
-
-    <div class="actions">
-      <button class="fab" id="genBtn" aria-label="Generate QR">
-        <svg fill="currentColor"><use href="#icon-qr"/></svg>
-        <span>Create Code</span>
-      </button>
-
-      <button class="fab" id="scanBtn" aria-label="Scan QR">
-        <svg fill="currentColor"><use href="#icon-cam"/></svg>
-        <span>Scan Code</span>
-      </button>
-    </div>
-
-    <canvas id="qrcvs"></canvas>
-    <video id="cam" playsinline></video>
-  </main>
-
-  <section id="chat" class="card hidden">
-    <div class="msg-log" id="log"></div>
-
-    <div class="input-box">
-      <textarea id="txt" maxlength="140" placeholder="Type message…"></textarea>
-      <button id="sendBtn" class="send-fab">
-        <svg fill="currentColor"><use href="#icon-send"/></svg>
-      </button>
-    </div>
-
-    <button class="ghost" id="decBtn">Decode incoming</button>
-  </section>
-
-  <!-- SVG ICONS -->
-  <svg style="display:none">
-    <defs>
-      <path id="icon-qr" d="M3 3h7v7H3V3m2 2v3h3V5H5m8-2h7v7h-7V3m2 2v3h3V5h-3m-2 5h7v7h-7v-7m2 2v3h3v-3h-3M5 13h3v3H5v-3m6 0h3v3h-3v-3z"/>
-      <path id="icon-cam" d="M12 15a3 3 0 100-6 3 3 0 000 6m6-4.5v3a2 3 0 01-2 2H8a2 3 0 01-2-2v-3a2 3 0 012-2h.5l1.5-1.5h3l1.5 1.5h.5a2 3 0 012 2z"/>
-      <path id="icon-send" d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
-    </defs>
-  </svg>
-
-  <!-- scripts (unchanged logic) -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-  <script type="module" src="twinnet.js"></script>
-  <script type="module" src="crypto.js"></script>
-  <script type="module" src="qr.js"></script>
-  <script type="module" src="app.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
