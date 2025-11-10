@@ -6,6 +6,7 @@ const chat = document.getElementById('chat');
 const log = document.getElementById('log');
 const txt = document.getElementById('txt');
 
+// QR pairing
 document.getElementById('genBtn').onclick = async () => {
   const seed = crypto.getRandomValues(new Uint8Array(32));
   await setSeed(seed);
@@ -21,6 +22,7 @@ document.getElementById('scanBtn').onclick = async () => {
   });
 };
 
+// Encrypt & show
 document.getElementById('sendBtn').onclick = async () => {
   const msg = new TextEncoder().encode(txt.value);
   const pad = await nextPad(msg.length);
@@ -28,13 +30,27 @@ document.getElementById('sendBtn').onclick = async () => {
   log.textContent = btoa(String.fromCharCode(...enc));
 };
 
+// Decrypt & speak
 document.getElementById('decBtn').onclick = async () => {
   const cip = prompt('Paste base64 cipher:');
-  if (!cip) return;
+  if(!cip) return;
   const bytes = new Uint8Array([...atob(cip)].map(c=>c.charCodeAt(0)));
   const pad = await nextPad(bytes.length);
   const dec = bytes.map((b,i)=>b^pad[i]);
-  log.textContent = new TextDecoder().decode(dec);
+  const text = new TextDecoder().decode(dec);
+  log.textContent = text;
+  speechSynthesis.speak(new SpeechSynthesisUtterance(text));
 };
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+// Voice input
+const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+recognition.lang = 'en-US';
+recognition.interimResults = false;
+document.getElementById('voiceBtn').onclick = ()=> recognition.start();
+recognition.onresult = e => txt.value = e.results[0][0].transcript;
+
+// Voice output
+document.getElementById('speakBtn').onclick = ()=> speechSynthesis.speak(new SpeechSynthesisUtterance(txt.value));
+
+// Service Worker
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
