@@ -1,20 +1,44 @@
+import * as tf from './tf.min.js';
+
 let model;
 
-export async function loadTwin() {
-  if (model) return;
-  await tf.ready();
-  model = tf.sequential();
-  model.add(tf.layers.dense({inputShape:[33], units:64, activation:'relu'}));
-  model.add(tf.layers.dense({units:64, activation:'relu'}));
-  model.add(tf.layers.dense({units:32, activation:'tanh'}));
+// Tiny embedded 2-layer network
+const modelData = {
+  layers: [
+    { type:'dense', units:64, activation:'relu', inputShape:[33] },
+    { type:'dense', units:32, activation:'tanh' }
+  ],
+  // Random small weights for demonstration
+  weights: {
+    'dense/kernel': tf.randomNormal([33,64]).arraySync(),
+    'dense/bias': tf.randomNormal([64]).arraySync(),
+    'dense_1/kernel': tf.randomNormal([64,32]).arraySync(),
+    'dense_1/bias': tf.randomNormal([32]).arraySync()
+  }
+};
 
-  const weights = await fetch('weights.bin').then(r=>r.arrayBuffer());
-  const decoded = tf.io.decodeWeights(new Uint8Array(weights), model.weights.map(w=>w.shape));
-  await model.setWeights(Object.values(decoded));
+export async function loadTwin() {
+  if(model) return;
+  await tf.ready();
+
+  model = tf.sequential({
+    layers: [
+      tf.layers.dense({ units:64, activation:'relu', inputShape:[33] }),
+      tf.layers.dense({ units:32, activation:'tanh' })
+    ]
+  });
+
+  const w = [
+    tf.tensor2d(modelData.weights['dense/kernel']),
+    tf.tensor1d(modelData.weights['dense/bias']),
+    tf.tensor2d(modelData.weights['dense_1/kernel']),
+    tf.tensor1d(modelData.weights['dense_1/bias'])
+  ];
+  await model.setWeights(w);
 }
 
 export function infer(seed) {
   const input = tf.tensor2d([seed.map(v=>v/255)], [1, seed.length]);
   const out = model.predict(input);
-  return out.dataSync();
+  return Array.from(out.dataSync());
 }
