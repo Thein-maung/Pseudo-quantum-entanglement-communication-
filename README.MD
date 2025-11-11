@@ -1,17 +1,23 @@
-# Pseudo-Entangle PWA
+# Entangle Chat
 
-Install on two phones → airplane mode → type messages that appear **instantly** with **zero network**.
+Secure PWA voice & text chat with quantum-inspired twin neural nets.
 
-## 30-sec try
-1. Visit **https://YOURNAME.github.io/pseudo-entangle-pwa/**
-2. Phone A: GENERATE QR  
-3. Phone B: SCAN QR  
-4. Chat offline – copy base64 ciphertext via **any** channel (even shout it).
+## Features
+- QR pairing
+- E2EE text & voice (OTP + SRTP)
+- Offline-first
+- Free TURN + Firebase signaling
+- Deploy on GitHub Pages
 
-## Tech
-- TensorFlow.js CNN (21 kB) acts as synchronised PRNG  
-- Service-worker → 100 % offline after first load  
-- No quantum physics, just **AI-maintained twin pads**
+## Deploy
+1. Create repo `entangle-chat`
+2. Upload all files
+3. Settings → Pages → Deploy from `main`
+4. Open: `https://yourusername.github.io/entangle-chat`
 
-## Build
-Drop files in GitHub repo → enable **GitHub Pages** (root folder) → done.
+## Firebase
+1. Create project at [firebase.google.com](https://firebase.google.com)
+2. Add web app → Copy config → Paste in `voice.js`
+3. Enable Realtime Database
+
+**Germany-optimized · GDPR-safe · Zero cost**
